@@ -2,9 +2,22 @@ import sys
 import tweepy
 import datetime
 import MySQLdb as mysql
+import socket
 
  
- 
+#TCP info for Unity Communication
+TCP_IP = '127.0.0.1'
+TCP_PORT = 5005
+BUFFER_SIZE = 1024
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((TCP_IP, TCP_PORT))
+s.listen(1)
+
+connection, addr = s.accept()
+
+print 'Connection address:', addr
+
  
 # Insert information from your Twitter App.
 CONSUMER_KEY = 'yPyurOc0Nqy8DYGIU0ofZYzso'
@@ -25,20 +38,20 @@ db = 'ndltest'
 # [Southwest longitude, southwest latitude, northeast longitude, northeast latitude]
 box = [-84.55,33.64,-84.29,33.88]
 
+#MYSQL SETUP
+# conn = mysql.connection(
+#     host=host,
+#     user=user,
+#     passwd=password,
+#     port=port,
+#     db=db
+# )
 
-conn = mysql.connection(
-    host=host,
-    user=user,
-    passwd=password,
-    port=port,
-    db=db
-)
-
-conn.query("""CREATE TABLE IF NOT EXISTS new_table (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    message VARCHAR(250) DEFAULT NULL,
-    PRIMARY KEY (id)) DEFAULT CHARSET=utf8""")
-conn.commit()
+# conn.query("""CREATE TABLE IF NOT EXISTS new_table (
+#     id INT(11) NOT NULL AUTO_INCREMENT,
+#     message VARCHAR(250) DEFAULT NULL,
+#     PRIMARY KEY (id)) DEFAULT CHARSET=utf8""")
+# conn.commit()
 
 class CustomStreamListener(tweepy.StreamListener):
     def on_status(self, status):
@@ -49,6 +62,7 @@ class CustomStreamListener(tweepy.StreamListener):
                 # pickle.dump(status, filename)
                 # filename.close()
                 print status
+                connection.send(data)
                 # escapedText = conn.escape_string(status.text.encode('utf-8'))
                 # query = "INSERT INTO new_table(message) VALUES ('%s')" % escapedText
                 # print query
@@ -83,3 +97,5 @@ while True:
                 print >> sys.stderr, 'Encountered Exception:', e
                 print datetime.datetime.now()
                 pass
+
+connection.close()
