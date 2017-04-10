@@ -60,9 +60,8 @@ class CustomStreamListener(tweepy.StreamListener):
                 # filename = open( "Z:/statuses_%s%s%s_%s_copy.p" % (str(now.year),str(now.month),str(now.day),str(now.hour)),"a+b")             #Set your own directory; a new file will be created each hour.  
                 # pickle.dump(status, filename)
                 # filename.close()
-                print status.geo['coordinates']
-                payload = ",".join(map(str, status.geo['coordinates'])) + "~" + status.text.encode("utf-8") + "\n"
-                print payload
+                jsonResponse = status.author._json
+                payload = ",".join(map(str, status.geo['coordinates'])) + "," + jsonResponse["screen_name"].encode("utf-8") + "," + jsonResponse["name"].encode("utf-8") + "~" + status.text.encode("utf-8") + "\n"
                 client.send(payload)
                 # escapedText = conn.escape_string(status.text.encode('utf-8'))
                 # query = "INSERT INTO new_table(message) VALUES ('%s')" % escapedText
