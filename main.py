@@ -1,22 +1,19 @@
 import sys
 import tweepy
 import datetime
-import MySQLdb as mysql
+# import MySQLdb as mysql
 import socket
 
  
 #TCP info for Unity Communication
 TCP_IP = '127.0.0.1'
 TCP_PORT = 5005
-BUFFER_SIZE = 1024
+BUFFER_SIZE = 8192
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((TCP_IP, TCP_PORT))
-s.listen(1)
+s.listen(5)
 
-connection, addr = s.accept()
-
-print 'Connection address:', addr
 
  
 # Insert information from your Twitter App.
@@ -55,14 +52,18 @@ box = [-84.55,33.64,-84.29,33.88]
 
 class CustomStreamListener(tweepy.StreamListener):
     def on_status(self, status):
+        global client
+        # print "status received"
+        print status.text.encode("utf-8")
+        client.send(status.text.encode("utf-8"))
         try:
             if status.geo!=None:
                 # now = datetime.datetime.now()
                 # filename = open( "Z:/statuses_%s%s%s_%s_copy.p" % (str(now.year),str(now.month),str(now.day),str(now.hour)),"a+b")             #Set your own directory; a new file will be created each hour.  
                 # pickle.dump(status, filename)
                 # filename.close()
-                print status
-                connection.send(data)
+                print status.text.encode("utf-8")
+                client.send(status.text.encode("utf-8"))
                 # escapedText = conn.escape_string(status.text.encode('utf-8'))
                 # query = "INSERT INTO new_table(message) VALUES ('%s')" % escapedText
                 # print query
@@ -88,14 +89,27 @@ class CustomStreamListener(tweepy.StreamListener):
  
 # Create a streaming API and set a timeout value of 30 seconds
  
-while True:
-    try:
-        streaming_api1 = tweepy.streaming.Stream(auth, CustomStreamListener(), timeout=30)     
-        print >> sys.stderr, 'Filtering the public timeline for '
-        streaming_api1.filter(locations=box)
-    except Exception, e:
-                print >> sys.stderr, 'Encountered Exception:', e
-                print datetime.datetime.now()
-                pass
+while 1:
+    client, address = s.accept() 
+    print "Client connected."
+    client.send("Hello!\n")
+    
+    while 1:
+        # data = client.recv(BUFFER_SIZE).rstrip('\r\n')
+        # if data: 
+        #     if data=="quit":
+        #         client.send("Bye!\n")
+        #         client.close()
+        #         break
+        #     else:
+        #         client.send("You just said: " + data + "\n")
+        try:
+            streaming_api1 = tweepy.streaming.Stream(auth, CustomStreamListener(), timeout=30)     
+            print >> sys.stderr, 'Filtering the public timeline for '
+            streaming_api1.filter(locations=box)
+        except Exception, e:
+                    print >> sys.stderr, 'Encountered Exception:', e
+                    print datetime.datetime.now()
+                    pass
 
 connection.close()
