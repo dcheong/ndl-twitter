@@ -54,16 +54,16 @@ class CustomStreamListener(tweepy.StreamListener):
     def on_status(self, status):
         global client
         # print "status received"
-        print status.text.encode("utf-8")
-        client.send(status.text.encode("utf-8"))
         try:
             if status.geo!=None:
                 # now = datetime.datetime.now()
                 # filename = open( "Z:/statuses_%s%s%s_%s_copy.p" % (str(now.year),str(now.month),str(now.day),str(now.hour)),"a+b")             #Set your own directory; a new file will be created each hour.  
                 # pickle.dump(status, filename)
                 # filename.close()
-                print status.text.encode("utf-8")
-                client.send(status.text.encode("utf-8"))
+                print status.geo['coordinates']
+                payload = ",".join(map(str, status.geo['coordinates'])) + "~" + status.text.encode("utf-8") + "\n"
+                print payload
+                client.send(payload)
                 # escapedText = conn.escape_string(status.text.encode('utf-8'))
                 # query = "INSERT INTO new_table(message) VALUES ('%s')" % escapedText
                 # print query
